@@ -1,0 +1,50 @@
+name: Flask CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, staging]
+  release:
+    types: [published]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        run: |
+          pytest
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Staging Server
+        run: |
+          echo "Deploying to staging..."
+          # You can add SSH or Rsync here for real deployment
+          # Example:
+          # ssh -i ~/.ssh/id_rsa user@staging-server "bash deploy.sh"
+
+  deploy-prod:
+    if: github.event_name == 'release'
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Production Server
+        run: |
+          echo "Deploying to production..."
+          # Add real deployment logic here
